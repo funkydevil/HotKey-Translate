@@ -19,7 +19,7 @@ struct TranslatorWindowView: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
         }
-        .frame(minWidth: 760, minHeight: 560)
+        .frame(width: 760, height: 270)
         .background(WindowFrameConfigurator())
     }
 }
@@ -47,7 +47,8 @@ private struct WindowFrameConfigurator: NSViewRepresentable {
         guard let window else { return }
 
         window.title = "HotKey Translate"
-        window.minSize = NSSize(width: 760, height: 560)
+        window.minSize = NSSize(width: 760, height: 270)
+        window.maxSize = NSSize(width: 760, height: 270)
 
         guard !Self.didConfigureInitialFrame else { return }
         Self.didConfigureInitialFrame = true
@@ -58,8 +59,8 @@ private struct WindowFrameConfigurator: NSViewRepresentable {
             width: 1440,
             height: 900
         )
-        let width = max(760, visibleFrame.width * 0.5)
-        let height = max(560, visibleFrame.height * 0.8)
+        let width: CGFloat = 760
+        let height: CGFloat = 270
         let frame = NSRect(
             x: visibleFrame.midX - width / 2,
             y: visibleFrame.midY - height / 2,

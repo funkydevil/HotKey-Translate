@@ -5,7 +5,7 @@ struct HotKeyTranslateApp: App {
         Window("HotKey Translate", id: "translator") {
             TranslatorWindowView()
         }
-        .defaultSize(width: 900, height: 700)
+        .defaultSize(width: 760, height: 270)
 
         MenuBarExtra("HotKey Translate", systemImage: "character.bubble") {
             OpenTranslatorWindowButton()
