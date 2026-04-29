@@ -68,7 +68,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             function googleTranslateElementInit() {
                 new google.translate.TranslateElement({
                     pageLanguage: 'en',
-                    layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                    layout: google.translate.TranslateElement.InlineLayout.HORIZONTAL,
                     autoDisplay: false
                 }, 'google_translate_element');
             }
