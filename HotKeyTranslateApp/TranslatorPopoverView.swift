@@ -74,12 +74,94 @@ private struct WindowFrameConfigurator: NSViewRepresentable {
 }
 
 struct TranslateWebView: NSViewRepresentable {
-    private static let mobileUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
-    private static let translateURL = URL(string: "https://translate.google.com/m?sl=auto&tl=ru")!
+    private static let translateURL = URL(string: "https://translate.google.com/?sl=auto&tl=ru&op=translate")!
+    private static let hideHeaderScript = """
+    (function() {
+        const styleId = 'hotkey-translate-hide-header';
+        const hiddenLabels = new Set([
+            'history',
+            'saved',
+            'история',
+            'сохраненные',
+            'сохранённые',
+            'сохранено'
+        ]);
+
+        function normalize(value) {
+            return (value || '').trim().toLowerCase();
+        }
+
+        function hideHistoryAndSavedButtons() {
+            document.querySelectorAll('a, button, [role="button"], [role="link"]').forEach((element) => {
+                const labels = [
+                    element.getAttribute('aria-label'),
+                    element.getAttribute('title'),
+                    element.getAttribute('data-tooltip'),
+                    element.textContent
+                ].map(normalize);
+
+                if (labels.some((label) => hiddenLabels.has(label))) {
+                    element.style.setProperty('display', 'none', 'important');
+                }
+            });
+        }
+
+        if (window.hotkeyTranslateCleanupObserver) {
+            window.hotkeyTranslateCleanupObserver.disconnect();
+        }
+
+        if (!document.getElementById(styleId)) {
+            const style = document.createElement('style');
+            style.id = styleId;
+            style.textContent = `
+                header,
+                [role="banner"],
+                #gb,
+                .gb_wa,
+                .gb_xa,
+                .gb_za,
+                .gb_1a,
+                .gb_2a,
+                .gb_3a,
+                a[href*="history"],
+                a[href*="saved"],
+                button[aria-label="History"],
+                button[aria-label="Saved"],
+                [aria-label="History"],
+                [aria-label="Saved"],
+                [data-tooltip="History"],
+                [data-tooltip="Saved"] {
+                    display: none !important;
+                }
+
+                html,
+                body {
+                    margin-top: 0 !important;
+                    padding-top: 0 !important;
+                }
+            `;
+            document.documentElement.appendChild(style);
+        }
+
+        hideHistoryAndSavedButtons();
+        window.hotkeyTranslateCleanupObserver = new MutationObserver(hideHistoryAndSavedButtons);
+        window.hotkeyTranslateCleanupObserver.observe(document.documentElement, {
+            childList: true,
+            subtree: true
+        });
+    })();
+    """
 
     func makeNSView(context: Context) -> WKWebView {
-        let webView = WKWebView(frame: .zero)
-        webView.customUserAgent = Self.mobileUserAgent
+        let configuration = WKWebViewConfiguration()
+        let hideHeaderUserScript = WKUserScript(
+            source: Self.hideHeaderScript,
+            injectionTime: .atDocumentEnd,
+            forMainFrameOnly: true
+        )
+        configuration.userContentController.addUserScript(hideHeaderUserScript)
+
+        let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.load(URLRequest(url: Self.translateURL))
         return webView
     }
