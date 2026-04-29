@@ -7,13 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2F7B912E2BD6B2A700000001 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F7B912D2BD6B2A700000001 /* AppDelegate.swift */; };
+		2F7B912E2BD6B2A700000001 /* TranslatorPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F7B912D2BD6B2A700000001 /* TranslatorPopoverView.swift */; };
 		2F7B91302BD6B2A700000001 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F7B912F2BD6B2A700000001 /* main.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		2F7B91292BD6B2A700000001 /* StatusBarApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StatusBarApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		2F7B912D2BD6B2A700000001 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		2F7B91292BD6B2A700000001 /* HotKeyTranslateApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HotKeyTranslateApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2F7B912D2BD6B2A700000001 /* TranslatorPopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslatorPopoverView.swift; sourceTree = "<group>"; };
 		2F7B912F2BD6B2A700000001 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		2F7B91312BD6B2A700000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -32,7 +32,7 @@
 		2F7B91202BD6B2A700000001 = {
 			isa = PBXGroup;
 			children = (
-				2F7B912C2BD6B2A700000001 /* StatusBarApp */,
+				2F7B912C2BD6B2A700000001 /* HotKeyTranslateApp */,
 				2F7B912A2BD6B2A700000001 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -40,27 +40,27 @@
 		2F7B912A2BD6B2A700000001 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				2F7B91292BD6B2A700000001 /* StatusBarApp.app */,
+				2F7B91292BD6B2A700000001 /* HotKeyTranslateApp.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		2F7B912C2BD6B2A700000001 /* StatusBarApp */ = {
+		2F7B912C2BD6B2A700000001 /* HotKeyTranslateApp */ = {
 			isa = PBXGroup;
 			children = (
-				2F7B912D2BD6B2A700000001 /* AppDelegate.swift */,
+				2F7B912D2BD6B2A700000001 /* TranslatorPopoverView.swift */,
 				2F7B912F2BD6B2A700000001 /* main.swift */,
 				2F7B91312BD6B2A700000001 /* Info.plist */,
 			);
-			path = StatusBarApp;
+			path = HotKeyTranslateApp;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		2F7B91282BD6B2A700000001 /* StatusBarApp */ = {
+		2F7B91282BD6B2A700000001 /* HotKeyTranslateApp */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2F7B91352BD6B2A700000001 /* Build configuration list for PBXNativeTarget "StatusBarApp" */;
+			buildConfigurationList = 2F7B91352BD6B2A700000001 /* Build configuration list for PBXNativeTarget "HotKeyTranslateApp" */;
 			buildPhases = (
 				2F7B91252BD6B2A700000001 /* Sources */,
 				2F7B91262BD6B2A700000001 /* Frameworks */,
@@ -70,9 +70,9 @@
 			);
 			dependencies = (
 			);
-			name = StatusBarApp;
-			productName = StatusBarApp;
-			productReference = 2F7B91292BD6B2A700000001 /* StatusBarApp.app */;
+			name = HotKeyTranslateApp;
+			productName = HotKeyTranslateApp;
+			productReference = 2F7B91292BD6B2A700000001 /* HotKeyTranslateApp.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -90,7 +90,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 2F7B91242BD6B2A700000001 /* Build configuration list for PBXProject "StatusBarApp" */;
+			buildConfigurationList = 2F7B91242BD6B2A700000001 /* Build configuration list for PBXProject "HotKeyTranslateApp" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -103,7 +103,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				2F7B91282BD6B2A700000001 /* StatusBarApp */,
+				2F7B91282BD6B2A700000001 /* HotKeyTranslateApp */,
 			);
 		};
 /* End PBXProject section */
@@ -123,7 +123,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2F7B912E2BD6B2A700000001 /* AppDelegate.swift in Sources */,
+				2F7B912E2BD6B2A700000001 /* TranslatorPopoverView.swift in Sources */,
 				2F7B91302BD6B2A700000001 /* main.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -253,13 +253,13 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = StatusBarApp/Info.plist;
+				INFOPLIST_FILE = HotKeyTranslateApp/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				PRODUCT_BUNDLE_IDENTIFIER = local.statusbarapp;
+				PRODUCT_BUNDLE_IDENTIFIER = local.hotkeytranslateapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 6.0;
@@ -273,13 +273,13 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = StatusBarApp/Info.plist;
+				INFOPLIST_FILE = HotKeyTranslateApp/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				PRODUCT_BUNDLE_IDENTIFIER = local.statusbarapp;
+				PRODUCT_BUNDLE_IDENTIFIER = local.hotkeytranslateapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 6.0;
@@ -289,7 +289,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		2F7B91242BD6B2A700000001 /* Build configuration list for PBXProject "StatusBarApp" */ = {
+		2F7B91242BD6B2A700000001 /* Build configuration list for PBXProject "HotKeyTranslateApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2F7B91322BD6B2A700000001 /* Debug */,
@@ -298,7 +298,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2F7B91352BD6B2A700000001 /* Build configuration list for PBXNativeTarget "StatusBarApp" */ = {
+		2F7B91352BD6B2A700000001 /* Build configuration list for PBXNativeTarget "HotKeyTranslateApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2F7B91362BD6B2A700000001 /* Debug */,
