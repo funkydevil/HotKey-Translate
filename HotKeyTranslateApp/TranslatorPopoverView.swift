@@ -74,7 +74,7 @@ private struct WindowFrameConfigurator: NSViewRepresentable {
 }
 
 struct TranslateWebView: NSViewRepresentable {
-    private static let translateURL = URL(string: "https://translate.google.com/?sl=auto&tl=ru&op=translate")!
+    private static let translateURL = URL(string: "https://translate.google.com/?sl=auto&tl=en&op=translate")!
     private static let hideHeaderScript = """
     (function() {
         const styleId = 'hotkey-translate-hide-header';
@@ -90,24 +90,65 @@ struct TranslateWebView: NSViewRepresentable {
             'отправить отзыв',
             'отправить отзыв о google переводчике'
         ]);
+        const modeLabels = new Set([
+            'text',
+            'images',
+            'documents',
+            'websites',
+            'текст',
+            'изображения',
+            'документы',
+            'сайты',
+            'веб-сайты'
+        ]);
 
         function normalize(value) {
             return (value || '').trim().toLowerCase();
         }
 
-        function hideHistoryAndSavedButtons() {
-            document.querySelectorAll('a, button, [role="button"], [role="link"]').forEach((element) => {
-                const labels = [
-                    element.getAttribute('aria-label'),
-                    element.getAttribute('title'),
-                    element.getAttribute('data-tooltip'),
-                    element.textContent
-                ].map(normalize);
+        function labelsFor(element) {
+            return [
+                element.getAttribute('aria-label'),
+                element.getAttribute('title'),
+                element.getAttribute('data-tooltip'),
+                element.textContent
+            ].map(normalize);
+        }
 
-                if (labels.some((label) => hiddenLabels.has(label))) {
+        function isModeSwitcherElement(element) {
+            return labelsFor(element).some((label) => modeLabels.has(label));
+        }
+
+        function hideModeSwitcherBlock() {
+            document.querySelectorAll('a, button, [role="button"], [role="link"], [role="tab"]').forEach((element) => {
+                if (!isModeSwitcherElement(element)) { return; }
+
+                let container = element;
+                for (let depth = 0; depth < 6 && container.parentElement; depth += 1) {
+                    const modeItemCount = Array.from(
+                        container.querySelectorAll('a, button, [role="button"], [role="link"], [role="tab"]')
+                    ).filter(isModeSwitcherElement).length;
+
+                    const containerText = normalize(container.textContent);
+                    if (modeItemCount >= 2 && (containerText.includes('text') || containerText.includes('текст'))) {
+                        container.style.setProperty('display', 'none', 'important');
+                        return;
+                    }
+
+                    container = container.parentElement;
+                }
+
+                element.style.setProperty('display', 'none', 'important');
+            });
+        }
+
+        function cleanupGoogleTranslateChrome() {
+            document.querySelectorAll('a, button, [role="button"], [role="link"]').forEach((element) => {
+                if (labelsFor(element).some((label) => hiddenLabels.has(label))) {
                     element.style.setProperty('display', 'none', 'important');
                 }
             });
+            hideModeSwitcherBlock();
         }
 
         if (window.hotkeyTranslateCleanupObserver) {
@@ -153,8 +194,8 @@ struct TranslateWebView: NSViewRepresentable {
             document.documentElement.appendChild(style);
         }
 
-        hideHistoryAndSavedButtons();
-        window.hotkeyTranslateCleanupObserver = new MutationObserver(hideHistoryAndSavedButtons);
+        cleanupGoogleTranslateChrome();
+        window.hotkeyTranslateCleanupObserver = new MutationObserver(cleanupGoogleTranslateChrome);
         window.hotkeyTranslateCleanupObserver.observe(document.documentElement, {
             childList: true,
             subtree: true
