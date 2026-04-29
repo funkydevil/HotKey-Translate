@@ -92,9 +92,13 @@ struct TranslateWebView: NSViewRepresentable {
         ]);
         const modeLabels = new Set([
             'text',
+            'text translation',
             'images',
+            'image translation',
             'documents',
+            'document translation',
             'websites',
+            'website translation',
             'текст',
             'изображения',
             'документы',
@@ -142,13 +146,48 @@ struct TranslateWebView: NSViewRepresentable {
             });
         }
 
+        function hideNavigationByHeading(headingText) {
+            document.querySelectorAll('nav, [role="navigation"]').forEach((navigation) => {
+                const heading = navigation.querySelector('h1, h2, h3, [role="heading"]');
+                if (normalize(heading?.textContent) === headingText) {
+                    navigation.style.setProperty('display', 'none', 'important');
+                }
+            });
+        }
+
+        function compactTopSpacing() {
+            const translationInput = document.querySelector('textarea, [contenteditable="true"], [role="textbox"]');
+            const main = document.querySelector('main, [role="main"]');
+
+            [main, translationInput].filter(Boolean).forEach((element) => {
+                element.style.setProperty('margin-top', '0', 'important');
+                element.style.setProperty('padding-top', '0', 'important');
+            });
+
+            let container = translationInput || main;
+            for (let depth = 0; depth < 10 && container; depth += 1) {
+                container.style.setProperty('margin-top', '0', 'important');
+                container.style.setProperty('padding-top', '0', 'important');
+                container.style.setProperty('top', '0', 'important');
+                container = container.parentElement;
+            }
+
+            if (main) {
+                main.style.setProperty('margin-top', '-64px', 'important');
+                main.style.setProperty('transform', 'translateY(-64px)', 'important');
+            }
+        }
+
         function cleanupGoogleTranslateChrome() {
             document.querySelectorAll('a, button, [role="button"], [role="link"]').forEach((element) => {
                 if (labelsFor(element).some((label) => hiddenLabels.has(label))) {
                     element.style.setProperty('display', 'none', 'important');
                 }
             });
+            hideNavigationByHeading('translation types');
+            hideNavigationByHeading('side panels');
             hideModeSwitcherBlock();
+            compactTopSpacing();
         }
 
         if (window.hotkeyTranslateCleanupObserver) {
@@ -189,6 +228,32 @@ struct TranslateWebView: NSViewRepresentable {
                 body {
                     margin-top: 0 !important;
                     padding-top: 0 !important;
+                }
+
+                main,
+                c-wiz,
+                [role="main"] {
+                    margin-top: 0 !important;
+                    padding-top: 0 !important;
+                }
+
+                nav[aria-label="Translation types"],
+                nav[aria-label="Side panels"],
+                [role="navigation"][aria-label="Translation types"],
+                [role="navigation"][aria-label="Side panels"] {
+                    display: none !important;
+                }
+
+                body > div,
+                body > c-wiz {
+                    margin-top: 0 !important;
+                    padding-top: 0 !important;
+                }
+
+                main,
+                [role="main"] {
+                    margin-top: -64px !important;
+                    transform: translateY(-64px) !important;
                 }
             `;
             document.documentElement.appendChild(style);
