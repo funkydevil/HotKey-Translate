@@ -81,10 +81,14 @@ struct TranslateWebView: NSViewRepresentable {
         const hiddenLabels = new Set([
             'history',
             'saved',
+            'send feedback',
+            'send us feedback',
             'история',
             'сохраненные',
             'сохранённые',
-            'сохранено'
+            'сохранено',
+            'отправить отзыв',
+            'отправить отзыв о google переводчике'
         ]);
 
         function normalize(value) {
@@ -127,10 +131,16 @@ struct TranslateWebView: NSViewRepresentable {
                 a[href*="saved"],
                 button[aria-label="History"],
                 button[aria-label="Saved"],
+                button[aria-label="Send feedback"],
+                button[aria-label="Send us feedback"],
                 [aria-label="History"],
                 [aria-label="Saved"],
+                [aria-label="Send feedback"],
+                [aria-label="Send us feedback"],
                 [data-tooltip="History"],
-                [data-tooltip="Saved"] {
+                [data-tooltip="Saved"],
+                [data-tooltip="Send feedback"],
+                [data-tooltip="Send us feedback"] {
                     display: none !important;
                 }
 
