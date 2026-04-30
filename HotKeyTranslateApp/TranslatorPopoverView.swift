@@ -14,25 +14,23 @@ final class TranslatorState: ObservableObject {
 
 struct TranslatorPopoverView: View {
     @ObservedObject var state: TranslatorState
+    var onOpenSettings: () -> Void
 
     var body: some View {
-        VStack(spacing: 0) {
+        ZStack(alignment: .bottomTrailing) {
             TranslateWebView(state: state)
 
-            Divider()
-
-            HStack {
-                Spacer()
-
-                Button("Выйти") {
-                    NSApp.terminate(nil)
-                }
-                .keyboardShortcut("q")
+            Button(action: onOpenSettings) {
+                Image(systemName: "gearshape")
+                    .font(.system(size: 14, weight: .medium))
+                    .frame(width: 28, height: 28)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
+            .buttonStyle(.plain)
+            .background(.regularMaterial, in: Circle())
+            .help("Settings")
+            .padding(8)
         }
-        .frame(width: 760, height: 500)
+        .frame(width: 760, height: 450)
     }
 }
 
