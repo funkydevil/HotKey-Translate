@@ -1,10 +1,23 @@
 import SwiftUI
 import WebKit
 
+@MainActor
+final class TranslatorState: ObservableObject {
+    @Published private(set) var clipboardText = ""
+    @Published private(set) var clipboardVersion = 0
+
+    func setClipboardText(_ text: String) {
+        clipboardText = text
+        clipboardVersion += 1
+    }
+}
+
 struct TranslatorPopoverView: View {
+    @ObservedObject var state: TranslatorState
+
     var body: some View {
         VStack(spacing: 0) {
-            TranslateWebView()
+            TranslateWebView(state: state)
 
             Divider()
 
@@ -24,6 +37,8 @@ struct TranslatorPopoverView: View {
 }
 
 struct TranslateWebView: NSViewRepresentable {
+    @ObservedObject var state: TranslatorState
+
     private static let translateURL = URL(string: "https://translate.google.com/?sl=auto&tl=en&op=translate")!
     private static let hideHeaderScript = """
     (function() {
@@ -228,9 +243,50 @@ struct TranslateWebView: NSViewRepresentable {
         configuration.userContentController.addUserScript(hideHeaderUserScript)
 
         let webView = WKWebView(frame: .zero, configuration: configuration)
-        webView.load(URLRequest(url: Self.translateURL))
+        context.coordinator.loadTextIfNeeded(
+            state.clipboardText,
+            version: state.clipboardVersion,
+            into: webView
+        )
         return webView
     }
 
-    func updateNSView(_ nsView: WKWebView, context: Context) {}
+    func updateNSView(_ nsView: WKWebView, context: Context) {
+        context.coordinator.loadTextIfNeeded(
+            state.clipboardText,
+            version: state.clipboardVersion,
+            into: nsView
+        )
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
+    @MainActor
+    final class Coordinator {
+        private var loadedVersion = -1
+
+        func loadTextIfNeeded(_ text: String, version: Int, into webView: WKWebView) {
+            guard version != loadedVersion else { return }
+            loadedVersion = version
+            webView.load(URLRequest(url: Self.translateURL(for: text)))
+        }
+
+        private static func translateURL(for text: String) -> URL {
+            guard !text.isEmpty,
+                  var components = URLComponents(string: "https://translate.google.com/") else {
+                return TranslateWebView.translateURL
+            }
+
+            components.queryItems = [
+                URLQueryItem(name: "sl", value: "auto"),
+                URLQueryItem(name: "tl", value: "en"),
+                URLQueryItem(name: "text", value: text),
+                URLQueryItem(name: "op", value: "translate")
+            ]
+
+            return components.url ?? TranslateWebView.translateURL
+        }
+    }
 }
