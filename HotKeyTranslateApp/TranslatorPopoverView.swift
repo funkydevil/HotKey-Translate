@@ -1,7 +1,7 @@
 import SwiftUI
 import WebKit
 
-struct TranslatorWindowView: View {
+struct TranslatorPopoverView: View {
     var body: some View {
         VStack(spacing: 0) {
             TranslateWebView()
@@ -19,58 +19,7 @@ struct TranslatorWindowView: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
         }
-        .frame(width: 760, height: 270)
-        .background(WindowFrameConfigurator())
-    }
-}
-
-private struct WindowFrameConfigurator: NSViewRepresentable {
-    private static var didConfigureInitialFrame = false
-
-    func makeNSView(context: Context) -> NSView {
-        let view = NSView()
-
-        DispatchQueue.main.async {
-            configure(window: view.window)
-        }
-
-        return view
-    }
-
-    func updateNSView(_ nsView: NSView, context: Context) {
-        DispatchQueue.main.async {
-            configure(window: nsView.window)
-        }
-    }
-
-    private func configure(window: NSWindow?) {
-        guard let window else { return }
-
-        window.title = "HotKey Translate"
-        window.minSize = NSSize(width: 760, height: 270)
-        window.maxSize = NSSize(width: 760, height: 270)
-
-        guard !Self.didConfigureInitialFrame else { return }
-        Self.didConfigureInitialFrame = true
-
-        let visibleFrame = (window.screen ?? NSScreen.main)?.visibleFrame ?? NSRect(
-            x: 0,
-            y: 0,
-            width: 1440,
-            height: 900
-        )
-        let width: CGFloat = 760
-        let height: CGFloat = 270
-        let frame = NSRect(
-            x: visibleFrame.midX - width / 2,
-            y: visibleFrame.midY - height / 2,
-            width: width,
-            height: height
-        )
-
-        window.setFrame(frame, display: true)
-        window.center()
-        NSApp.activate(ignoringOtherApps: true)
+        .frame(width: 760, height: 500)
     }
 }
 
