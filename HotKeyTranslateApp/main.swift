@@ -56,7 +56,7 @@ private final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDeleg
     private func configureSettingsPopover() {
         settingsPopover.behavior = .transient
         settingsPopover.delegate = self
-        settingsPopover.contentSize = NSSize(width: 420, height: 180)
+        settingsPopover.contentSize = NSSize(width: 380, height: 170)
         settingsPopover.contentViewController = NSHostingController(rootView: SettingsView(settings: hotKeySettings))
     }
 
@@ -355,32 +355,51 @@ private struct SettingsView: View {
     @ObservedObject var settings: HotKeySettings
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("Settings")
-                .font(.headline)
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 8) {
+                Image(systemName: "gearshape")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(.secondary)
 
-            Text("Current hotkey: \(settings.shortcut.displayText)")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-
-            HStack(spacing: 14) {
-                Text("Hotkey")
-                    .frame(width: 80, alignment: .leading)
-
-                ShortcutRecorderView(shortcut: settings.shortcut) { shortcut in
-                    settings.update(shortcut: shortcut)
-                }
-                .frame(width: 180, height: 34)
-
-                Button("Reset") {
-                    settings.resetToDefault()
-                }
+                Text("Settings")
+                    .font(.headline)
             }
 
-            Spacer()
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Hotkey")
+                    .font(.subheadline.weight(.semibold))
+
+                HStack(spacing: 10) {
+                    ShortcutRecorderView(shortcut: settings.shortcut) { shortcut in
+                        settings.update(shortcut: shortcut)
+                    }
+                    .frame(width: 190, height: 34)
+
+                    Button {
+                        settings.resetToDefault()
+                    } label: {
+                        Image(systemName: "arrow.counterclockwise")
+                            .font(.system(size: 13, weight: .medium))
+                            .frame(width: 30, height: 30)
+                    }
+                    .buttonStyle(.borderless)
+                    .help("Reset to default")
+
+                    Spacer(minLength: 0)
+                }
+
+                Text("Click the field, then press a new shortcut.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(14)
+            .background(
+                Color(nsColor: .controlBackgroundColor),
+                in: RoundedRectangle(cornerRadius: 8)
+            )
         }
-        .padding(22)
-        .frame(width: 420, height: 180)
+        .padding(18)
+        .frame(width: 380, height: 170)
     }
 }
 
