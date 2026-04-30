@@ -12,7 +12,7 @@ struct HotKeyTranslateApp: App {
 }
 
 @MainActor
-private final class AppDelegate: NSObject, NSApplicationDelegate {
+private final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     private var statusItem: NSStatusItem?
     private var hotKeyRef: EventHotKeyRef?
     private var eventHandlerRef: EventHandlerRef?
@@ -55,12 +55,14 @@ private final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func configureSettingsPopover() {
         settingsPopover.behavior = .transient
+        settingsPopover.delegate = self
         settingsPopover.contentSize = NSSize(width: 420, height: 180)
         settingsPopover.contentViewController = NSHostingController(rootView: SettingsView(settings: hotKeySettings))
     }
 
     private func configureHotKeySettings() {
         hotKeySettings.onChange = { [weak self] in
+            guard self?.settingsPopover.isShown != true else { return }
             self?.registerHotKey()
         }
     }
@@ -116,12 +118,19 @@ private final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         popover.performClose(nil)
+        unregisterHotKey()
         settingsPopover.show(
             relativeTo: button.bounds,
             of: button,
             preferredEdge: .minY
         )
         settingsPopover.contentViewController?.view.window?.makeKey()
+    }
+
+    func popoverDidClose(_ notification: Notification) {
+        if notification.object as? NSPopover === settingsPopover {
+            registerHotKey()
+        }
     }
 
     @objc private func quit() {
@@ -188,10 +197,7 @@ private final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func registerHotKey() {
-        if let hotKeyRef {
-            UnregisterEventHotKey(hotKeyRef)
-            self.hotKeyRef = nil
-        }
+        unregisterHotKey()
 
         let hotKeyID = EventHotKeyID(
             signature: Self.fourCharCode("HTKT"),
@@ -207,6 +213,12 @@ private final class AppDelegate: NSObject, NSApplicationDelegate {
             0,
             &hotKeyRef
         )
+    }
+
+    private func unregisterHotKey() {
+        guard let hotKeyRef else { return }
+        UnregisterEventHotKey(hotKeyRef)
+        self.hotKeyRef = nil
     }
 
     private func openTranslatorFromHotKey() {
@@ -343,9 +355,13 @@ private struct SettingsView: View {
     @ObservedObject var settings: HotKeySettings
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: 14) {
             Text("Settings")
                 .font(.headline)
+
+            Text("Current hotkey: \(settings.shortcut.displayText)")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
 
             HStack(spacing: 14) {
                 Text("Hotkey")
@@ -386,26 +402,88 @@ private struct ShortcutRecorderView: NSViewRepresentable {
 }
 
 private final class ShortcutRecorderNSView: NSView {
+    private let button = ShortcutRecorderButton(frame: .zero)
+
     var shortcut = HotKeyShortcut(
         keyCode: UInt32(kVK_ANSI_X),
         carbonModifiers: UInt32(controlKey | cmdKey)
     ) {
         didSet {
-            needsDisplay = true
+            button.shortcut = shortcut
         }
     }
+
+    var onChange: ((HotKeyShortcut) -> Void)? {
+        didSet {
+            button.onChange = onChange
+        }
+    }
+
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        button.bezelStyle = .rounded
+        button.setButtonType(.momentaryPushIn)
+        addSubview(button)
+    }
+
+    required init?(coder: NSCoder) {
+        nil
+    }
+
+    override func layout() {
+        super.layout()
+        button.frame = bounds
+    }
+}
+
+private final class ShortcutRecorderButton: NSButton {
+    var shortcut = HotKeyShortcut(
+        keyCode: UInt32(kVK_ANSI_X),
+        carbonModifiers: UInt32(controlKey | cmdKey)
+    ) {
+        didSet {
+            updateTitle()
+        }
+    }
+
     var onChange: ((HotKeyShortcut) -> Void)?
+    private var isRecording = false {
+        didSet {
+            updateTitle()
+        }
+    }
 
     override var acceptsFirstResponder: Bool { true }
 
-    override func mouseDown(with event: NSEvent) {
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        target = self
+        action = #selector(startRecording)
+        focusRingType = .default
+        font = .monospacedSystemFont(ofSize: 15, weight: .medium)
+        updateTitle()
+    }
+
+    required init?(coder: NSCoder) {
+        nil
+    }
+
+    @objc private func startRecording() {
+        isRecording = true
         window?.makeFirstResponder(self)
-        needsDisplay = true
+    }
+
+    override func resignFirstResponder() -> Bool {
+        isRecording = false
+        return super.resignFirstResponder()
     }
 
     override func keyDown(with event: NSEvent) {
         let modifiers = Self.carbonModifiers(from: event.modifierFlags)
-        guard modifiers != 0 else { return }
+        guard isRecording, modifiers != 0 else {
+            super.keyDown(with: event)
+            return
+        }
 
         let nextShortcut = HotKeyShortcut(
             keyCode: UInt32(event.keyCode),
@@ -413,28 +491,12 @@ private final class ShortcutRecorderNSView: NSView {
         )
         shortcut = nextShortcut
         onChange?(nextShortcut)
+        isRecording = false
+        window?.makeFirstResponder(nil)
     }
 
-    override func draw(_ dirtyRect: NSRect) {
-        NSColor.controlBackgroundColor.setFill()
-        bounds.insetBy(dx: 0.5, dy: 0.5).fill()
-
-        let path = NSBezierPath(roundedRect: bounds.insetBy(dx: 0.5, dy: 0.5), xRadius: 6, yRadius: 6)
-        NSColor.separatorColor.setStroke()
-        path.lineWidth = 1
-        path.stroke()
-
-        let text = window?.firstResponder === self ? "Press shortcut" : shortcut.displayText
-        let attributes: [NSAttributedString.Key: Any] = [
-            .font: NSFont.monospacedSystemFont(ofSize: 15, weight: .medium),
-            .foregroundColor: NSColor.labelColor
-        ]
-        let size = text.size(withAttributes: attributes)
-        let point = NSPoint(
-            x: bounds.midX - size.width / 2,
-            y: bounds.midY - size.height / 2
-        )
-        text.draw(at: point, withAttributes: attributes)
+    private func updateTitle() {
+        title = isRecording ? "Press shortcut" : shortcut.displayText
     }
 
     private static func carbonModifiers(from flags: NSEvent.ModifierFlags) -> UInt32 {
