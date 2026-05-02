@@ -256,7 +256,7 @@ final class HotKeySettings: ObservableObject {
     init() {
         let defaultShortcut = HotKeyShortcut(
             keyCode: UInt32(kVK_ANSI_X),
-            carbonModifiers: UInt32(controlKey | cmdKey)
+            carbonModifiers: UInt32(shiftKey | cmdKey)
         )
 
         let keyCode = defaults.object(forKey: keyCodeKey) as? Int
@@ -299,7 +299,7 @@ final class HotKeySettings: ObservableObject {
     func resetToDefault() {
         shortcut = HotKeyShortcut(
             keyCode: UInt32(kVK_ANSI_X),
-            carbonModifiers: UInt32(controlKey | cmdKey)
+            carbonModifiers: UInt32(shiftKey | cmdKey)
         )
     }
 
@@ -458,7 +458,7 @@ private final class ShortcutRecorderNSView: NSView {
 
     var shortcut = HotKeyShortcut(
         keyCode: UInt32(kVK_ANSI_X),
-        carbonModifiers: UInt32(controlKey | cmdKey)
+        carbonModifiers: UInt32(shiftKey | cmdKey)
     ) {
         didSet {
             button.shortcut = shortcut
@@ -491,7 +491,7 @@ private final class ShortcutRecorderNSView: NSView {
 private final class ShortcutRecorderButton: NSButton {
     var shortcut = HotKeyShortcut(
         keyCode: UInt32(kVK_ANSI_X),
-        carbonModifiers: UInt32(controlKey | cmdKey)
+        carbonModifiers: UInt32(shiftKey | cmdKey)
     ) {
         didSet {
             updateTitle()

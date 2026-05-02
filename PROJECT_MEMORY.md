@@ -11,7 +11,7 @@ The app reads the current text from the system clipboard when the global hotkey 
 - Shows a menu bar status item with a `character.bubble` SF Symbol.
 - Left click opens or closes the translator popover.
 - Right click opens a menu with Settings and Quit.
-- Default global hotkey is `Control + Command + X`.
+- Default global hotkey is `Shift + Command + X`.
 - The hotkey can be changed in the settings popover and is stored in `UserDefaults`.
 - The settings popover includes a `Launch at Login` checkbox backed by `SMAppService.mainApp`.
 - On hotkey press, the app reads `NSPasteboard.general.string(forType: .string)`.
