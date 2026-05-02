@@ -33,11 +33,12 @@ private final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDeleg
 
     private func configureStatusItem() {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        item.button?.image = NSImage(
+        item.button?.image = NSImage(named: "StatusBarIcon") ?? NSImage(
             systemSymbolName: "character.bubble",
             accessibilityDescription: "HotKey Translate"
         )
         item.button?.image?.isTemplate = true
+        item.button?.image?.accessibilityDescription = "HotKey Translate"
         item.button?.target = self
         item.button?.action = #selector(handleStatusItemClick(_:))
         item.button?.sendAction(on: [.leftMouseUp, .rightMouseUp])
