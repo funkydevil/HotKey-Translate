@@ -1,4 +1,5 @@
 import Carbon.HIToolbox
+import ServiceManagement
 import SwiftUI
 
 struct HotKeyTranslateApp: App {
@@ -56,7 +57,7 @@ private final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDeleg
     private func configureSettingsPopover() {
         settingsPopover.behavior = .transient
         settingsPopover.delegate = self
-        settingsPopover.contentSize = NSSize(width: 380, height: 170)
+        settingsPopover.contentSize = NSSize(width: 380, height: 230)
         settingsPopover.contentViewController = NSHostingController(rootView: SettingsView(settings: hotKeySettings))
     }
 
@@ -244,6 +245,7 @@ final class HotKeySettings: ObservableObject {
             onChange?()
         }
     }
+    @Published private(set) var launchAtLogin = false
 
     var onChange: (() -> Void)?
 
@@ -268,10 +270,30 @@ final class HotKeySettings: ObservableObject {
         } else {
             shortcut = defaultShortcut
         }
+
+        refreshLaunchAtLogin()
     }
 
     func update(shortcut: HotKeyShortcut) {
         self.shortcut = shortcut
+    }
+
+    func updateLaunchAtLogin(_ isEnabled: Bool) {
+        do {
+            if isEnabled {
+                if SMAppService.mainApp.status != .enabled {
+                    try SMAppService.mainApp.register()
+                }
+            } else {
+                if SMAppService.mainApp.status == .enabled {
+                    try SMAppService.mainApp.unregister()
+                }
+            }
+
+            refreshLaunchAtLogin()
+        } catch {
+            refreshLaunchAtLogin()
+        }
     }
 
     func resetToDefault() {
@@ -284,6 +306,10 @@ final class HotKeySettings: ObservableObject {
     private func save() {
         defaults.set(Int(shortcut.keyCode), forKey: keyCodeKey)
         defaults.set(Int(shortcut.carbonModifiers), forKey: modifiersKey)
+    }
+
+    private func refreshLaunchAtLogin() {
+        launchAtLogin = SMAppService.mainApp.status == .enabled
     }
 }
 
@@ -397,9 +423,16 @@ private struct SettingsView: View {
                 Color(nsColor: .controlBackgroundColor),
                 in: RoundedRectangle(cornerRadius: 8)
             )
+
+            Toggle("Launch at Login", isOn: Binding(
+                get: { settings.launchAtLogin },
+                set: { settings.updateLaunchAtLogin($0) }
+            ))
+            .toggleStyle(.checkbox)
+            .padding(.horizontal, 2)
         }
         .padding(18)
-        .frame(width: 380, height: 170)
+        .frame(width: 380, height: 230)
     }
 }
 

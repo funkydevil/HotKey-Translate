@@ -13,6 +13,7 @@ The app reads the current text from the system clipboard when the global hotkey 
 - Right click opens a menu with Settings and Quit.
 - Default global hotkey is `Control + Command + X`.
 - The hotkey can be changed in the settings popover and is stored in `UserDefaults`.
+- The settings popover includes a `Launch at Login` checkbox backed by `SMAppService.mainApp`.
 - On hotkey press, the app reads `NSPasteboard.general.string(forType: .string)`.
 - The clipboard text is stored in `TranslatorState` with a monotonically increasing `clipboardVersion`.
 - Google Translate is loaded without putting the text into the URL query.
@@ -25,6 +26,7 @@ The app reads the current text from the system clipboard when the global hotkey 
   - Status bar setup.
   - Global hotkey registration with Carbon APIs.
   - Settings popover.
+  - Launch at login registration with ServiceManagement.
   - Clipboard read on hotkey press.
 
 - `HotKeyTranslateApp/TranslatorPopoverView.swift`
@@ -73,4 +75,3 @@ Other reasonable options:
 - `README.md` if this should become public-facing project documentation.
 - `docs/PROJECT_MEMORY.md` if the project grows and documentation needs its own directory.
 - `AGENTS.md` if the content should become operational instructions for coding agents rather than general project notes.
-
