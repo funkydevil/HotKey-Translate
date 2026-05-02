@@ -241,7 +241,8 @@ struct TranslateWebView: NSViewRepresentable {
         configuration.userContentController.addUserScript(hideHeaderUserScript)
 
         let webView = WKWebView(frame: .zero, configuration: configuration)
-        context.coordinator.loadTextIfNeeded(
+        webView.navigationDelegate = context.coordinator
+        context.coordinator.loadOrInsertTextIfNeeded(
             state.clipboardText,
             version: state.clipboardVersion,
             into: webView
@@ -250,7 +251,7 @@ struct TranslateWebView: NSViewRepresentable {
     }
 
     func updateNSView(_ nsView: WKWebView, context: Context) {
-        context.coordinator.loadTextIfNeeded(
+        context.coordinator.loadOrInsertTextIfNeeded(
             state.clipboardText,
             version: state.clipboardVersion,
             into: nsView
@@ -262,29 +263,117 @@ struct TranslateWebView: NSViewRepresentable {
     }
 
     @MainActor
-    final class Coordinator {
+    final class Coordinator: NSObject, WKNavigationDelegate {
         private var loadedVersion = -1
+        private var isPageLoaded = false
+        private var pendingText = ""
 
-        func loadTextIfNeeded(_ text: String, version: Int, into webView: WKWebView) {
+        func loadOrInsertTextIfNeeded(_ text: String, version: Int, into webView: WKWebView) {
             guard version != loadedVersion else { return }
             loadedVersion = version
-            webView.load(URLRequest(url: Self.translateURL(for: text)))
-        }
+            pendingText = text
 
-        private static func translateURL(for text: String) -> URL {
-            guard !text.isEmpty,
-                  var components = URLComponents(string: "https://translate.google.com/") else {
-                return TranslateWebView.translateURL
+            if webView.url == nil {
+                webView.load(URLRequest(url: TranslateWebView.translateURL))
+                return
             }
 
-            components.queryItems = [
-                URLQueryItem(name: "sl", value: "auto"),
-                URLQueryItem(name: "tl", value: "en"),
-                URLQueryItem(name: "text", value: text),
-                URLQueryItem(name: "op", value: "translate")
-            ]
+            insertPendingText(into: webView)
+        }
 
-            return components.url ?? TranslateWebView.translateURL
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            isPageLoaded = true
+            insertPendingText(into: webView)
+        }
+
+        func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+            isPageLoaded = false
+        }
+
+        private func insertPendingText(into webView: WKWebView) {
+            guard isPageLoaded else { return }
+
+            let encodedText: String
+            do {
+                let data = try JSONEncoder().encode(pendingText)
+                encodedText = String(data: data, encoding: .utf8) ?? "\"\""
+            } catch {
+                encodedText = "\"\""
+            }
+
+            webView.evaluateJavaScript(Self.insertTextScript(forEncodedText: encodedText))
+        }
+
+        private static func insertTextScript(forEncodedText encodedText: String) -> String {
+            """
+            (function() {
+                const text = \(encodedText);
+                const selectors = [
+                    'textarea',
+                    '[contenteditable="true"]',
+                    '[role="textbox"]'
+                ];
+
+                function setNativeValue(element, value) {
+                    const prototype = Object.getPrototypeOf(element);
+                    const descriptor = Object.getOwnPropertyDescriptor(prototype, 'value');
+
+                    if (descriptor && descriptor.set) {
+                        descriptor.set.call(element, value);
+                    } else {
+                        element.value = value;
+                    }
+                }
+
+                function dispatchInputEvents(element) {
+                    element.dispatchEvent(new InputEvent('input', {
+                        bubbles: true,
+                        cancelable: true,
+                        inputType: 'insertText',
+                        data: text
+                    }));
+                    element.dispatchEvent(new Event('change', { bubbles: true }));
+                    element.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
+                }
+
+                function insertInto(element) {
+                    element.focus();
+
+                    if (element.isContentEditable) {
+                        element.textContent = text;
+                    } else {
+                        setNativeValue(element, text);
+                    }
+
+                    dispatchInputEvents(element);
+                    return true;
+                }
+
+                function findInput() {
+                    for (const selector of selectors) {
+                        const element = document.querySelector(selector);
+                        if (element) { return element; }
+                    }
+
+                    return null;
+                }
+
+                let attempts = 0;
+                const timer = setInterval(() => {
+                    attempts += 1;
+                    const input = findInput();
+
+                    if (input && insertInto(input)) {
+                        clearInterval(timer);
+                        return;
+                    }
+
+                    if (attempts >= 40) {
+                        clearInterval(timer);
+                    }
+                }, 250);
+            })();
+            """
         }
     }
 }
