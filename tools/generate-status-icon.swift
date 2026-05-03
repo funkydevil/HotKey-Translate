@@ -47,13 +47,13 @@ private func drawCentered(_ string: String, font: NSFont, in rect: CGRect) {
 
 private func drawStatusIcon(context ctx: CGContext, size: CGFloat) {
     let scale = size / 18
-    let latinFont = NSFont(name: "HelveticaNeue-Medium", size: 9.2 * scale)
-        ?? NSFont.systemFont(ofSize: 9.2 * scale, weight: .medium)
-    let cjkFont = NSFont(name: "HiraginoSans-W4", size: 9.8 * scale)
-        ?? NSFont.systemFont(ofSize: 9.8 * scale, weight: .regular)
+    let latinFont = NSFont(name: "HelveticaNeue-Bold", size: 10.3 * scale)
+        ?? NSFont.systemFont(ofSize: 10.3 * scale, weight: .bold)
+    let cjkFont = NSFont(name: "HiraginoSans-W6", size: 10.9 * scale)
+        ?? NSFont.systemFont(ofSize: 10.9 * scale, weight: .semibold)
 
-    let leftRect = CGRect(x: 1.2 * scale, y: 2.1 * scale, width: 7.4 * scale, height: 13.8 * scale)
-    let rightRect = CGRect(x: 8.7 * scale, y: 2.1 * scale, width: 8.1 * scale, height: 13.8 * scale)
+    let leftRect = CGRect(x: 0.6 * scale, y: 1.4 * scale, width: 8.2 * scale, height: 15.0 * scale)
+    let rightRect = CGRect(x: 8.4 * scale, y: 1.4 * scale, width: 9.0 * scale, height: 15.0 * scale)
 
     drawCentered("A", font: latinFont, in: leftRect)
     drawCentered("文", font: cjkFont, in: rightRect)
