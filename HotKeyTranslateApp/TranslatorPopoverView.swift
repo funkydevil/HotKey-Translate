@@ -5,10 +5,15 @@ import WebKit
 final class TranslatorState: ObservableObject {
     @Published private(set) var clipboardText = ""
     @Published private(set) var clipboardVersion = 0
+    @Published private(set) var isInterfaceReady = false
 
     func setClipboardText(_ text: String) {
         clipboardText = text
         clipboardVersion += 1
+    }
+
+    func setInterfaceReady(_ isReady: Bool) {
+        isInterfaceReady = isReady
     }
 }
 
@@ -19,6 +24,14 @@ struct TranslatorPopoverView: View {
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             TranslateWebView(state: state)
+                .opacity(state.isInterfaceReady ? 1 : 0)
+
+            if !state.isInterfaceReady {
+                ProgressView()
+                    .controlSize(.small)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color(nsColor: .windowBackgroundColor))
+            }
 
             Button(action: onOpenSettings) {
                 Image(systemName: "gearshape")
@@ -228,6 +241,10 @@ struct TranslateWebView: NSViewRepresentable {
             childList: true,
             subtree: true
         });
+
+        requestAnimationFrame(() => {
+            window.webkit?.messageHandlers?.hotkeyTranslateCleanup?.postMessage('ready');
+        });
     })();
     """
 
@@ -239,6 +256,7 @@ struct TranslateWebView: NSViewRepresentable {
             forMainFrameOnly: true
         )
         configuration.userContentController.addUserScript(hideHeaderUserScript)
+        configuration.userContentController.add(context.coordinator, name: "hotkeyTranslateCleanup")
 
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = context.coordinator
@@ -259,14 +277,19 @@ struct TranslateWebView: NSViewRepresentable {
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator()
+        Coordinator(state: state)
     }
 
     @MainActor
-    final class Coordinator: NSObject, WKNavigationDelegate {
+    final class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
+        private let state: TranslatorState
         private var loadedVersion = -1
         private var isPageLoaded = false
         private var pendingText = ""
+
+        init(state: TranslatorState) {
+            self.state = state
+        }
 
         func loadOrInsertTextIfNeeded(_ text: String, version: Int, into webView: WKWebView) {
             guard version != loadedVersion else { return }
@@ -288,6 +311,16 @@ struct TranslateWebView: NSViewRepresentable {
 
         func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
             isPageLoaded = false
+            state.setInterfaceReady(false)
+        }
+
+        nonisolated func userContentController(
+            _ userContentController: WKUserContentController,
+            didReceive _: WKScriptMessage
+        ) {
+            Task { @MainActor [weak self] in
+                self?.state.setInterfaceReady(true)
+            }
         }
 
         private func insertPendingText(into webView: WKWebView) {
